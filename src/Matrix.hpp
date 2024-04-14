@@ -189,11 +189,14 @@ public:
       int main_row = i - row_offset;
 
       // 主元行归一化
-      double unify = res.at(main_row, i);
-      for (int j = 0; j < width; j++)
+      if (res.at(main_row, i) != 1)
       {
-        double v = res.at(main_row, j) / unify;
-        res.set(main_row, j, v < 1e-8 ? 0 : v);
+        double unify = res.at(main_row, i);
+        for (int j = 0; j < width; j++)
+        {
+          double v = res.at(main_row, j) / unify;
+          res.set(main_row, j, v < 1e-8 ? 0 : v);
+        }
       }
 
       // 其他行消元
@@ -229,6 +232,10 @@ public:
       auto m = deep_copy();
       m.remove_col(c);
       m.remove_row(0);
+      
+      // 遇到0直接得0
+      if (at(0, c) == 0) continue;
+
       if (c % 2 == 0)
       {
         res += at(0,c) * m.determinant();
