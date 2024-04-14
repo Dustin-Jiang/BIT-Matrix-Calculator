@@ -21,6 +21,26 @@
       "group": "build",
       "detail": "编译器: C:\\msys64\\ucrt64\\bin\\g++.exe"
     },
+    {
+      "type": "cppbuild",
+      "label": "C/C++: g++.exe 生成测试文件",
+      "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+      "args": [
+        "-fdiagnostics-color=always",
+        "-g",
+        "./test/test.cpp",
+        "-Wformat",
+        "-Wunused-result",
+        "-o",
+        "./test/test.exe"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      },
+      "problemMatcher": ["$gcc"],
+      "group": "build",
+      "detail": "编译器: C:\\msys64\\ucrt64\\bin\\g++.exe"
+    }
     // {
     //   "type": "cppbuild",
     //   "label": "C/C++: gcc.exe 生成活动文件",
