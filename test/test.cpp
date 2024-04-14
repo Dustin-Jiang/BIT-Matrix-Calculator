@@ -59,6 +59,8 @@ int main()
     {48,3,16,48}
   }};
   assert(r6.determinant() == 370840);
+  r6.row_reduce().show();
+  std::cout << std::endl;
 
   return 0;
 }

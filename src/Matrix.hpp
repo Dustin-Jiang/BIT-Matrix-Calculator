@@ -162,44 +162,49 @@ public:
   Matrix row_reduce()
   {
     auto res = deep_copy();
+    int row_offset = 0;
     for (int i = 0; i < res.height; i++)
     {
       // 寻找最小主元
-      int minRow = i;
+      int minRow = i - row_offset;
       for (int j = i + 1; j < res.height; j++)
       {
-        if (fabs(res.at(j, i)) < fabs(res.at(minRow, i)) && fabs(res.at(j,i)) > 1e-8)
+        if (fabs(res.at(j - row_offset, i)) < fabs(res.at(minRow, i)) && fabs(res.at(j - row_offset, i)) > 1e-8)
         {
-          minRow = j;
+          minRow = j - row_offset;
         }
       }
 
       // 将主元放在对角线
-      if (i != minRow)
-        res.swap_line(i, minRow);
+      if (i - row_offset != minRow)
+        res.swap_line(i - row_offset, minRow);
 
-      if (fabs(res.at(i, i)) < 1e-9)
+      if (fabs(res.at(i - row_offset, i)) < 1e-9)
       {
-        return res;
+        // 应对非满秩情况偏移
+        row_offset++;
+        continue;
       }
 
+      int main_row = i - row_offset;
+
       // 主元行归一化
-      double unify = res.at(i, i);
+      double unify = res.at(main_row, i);
       for (int j = 0; j < width; j++)
       {
-        double v = res.at(i, j) / unify;
-        res.set(i, j, v < 1e-8 ? 0 : v);
+        double v = res.at(main_row, j) / unify;
+        res.set(main_row, j, v < 1e-8 ? 0 : v);
       }
 
       // 其他行消元
       for (int j = 0; j < res.height; j++)
       {
         // 跳过本行
-        if (j == i) continue;
-        double ratio = res.at(j, i) / res.at(i, i);
+        if (j == main_row) continue;
+        double ratio = res.at(j, i) / res.at(main_row, i);
         for (int k = i; k < res.width; k++)
         {
-          double v = res.at(j, k) - ratio * res.at(i, k);
+          double v = res.at(j, k) - ratio * res.at(main_row, k);
           res.set(j, k, fabs(v) < 1e-8 ? 0 : v);
         }
       }
