@@ -24,6 +24,8 @@ public:
   double at(int r, int c) { return base(r, c); }
   void set(int r, int c, double v) { base.set(r, c, v); }
   void swap_line(int f, int t) { base.swap_line(f, t); }
+  void remove_row(int r) { base.remove_row(r); --height; }
+  void remove_col(int c) { base.remove_col(c); --width; }
 
   // 迭代器初始化
   auto begin() { return base.begin(); };
@@ -53,19 +55,6 @@ public:
     assert(v.size() == height && v[0].size() == width);
     setAll(v);
     return *this;
-  }
-
-  // 深拷贝
-  Matrix operator=(Matrix v)
-  {
-    auto n = Matrix{v.width, v.height};
-    auto it_n = n.begin();
-    auto it_v = v.begin();
-    for (; it_n != n.end(); ++it_n, ++it_v)
-    {
-      (&it_n)->value = *it_v;
-    }
-    return n;
   }
 
   // 重载加法
@@ -154,12 +143,28 @@ public:
     return result;
   }
 
+
+  // 深拷贝
+  Matrix deep_copy()
+  {
+    auto n = Matrix{width, height};
+    auto it_n = n.begin();
+    auto it_v = begin();
+    for (; it_n != n.end(); ++it_n, ++it_v)
+    {
+      (&it_n)->value = *it_v;
+    }
+    return n;
+  }
+
+
   // 高斯消元
   Matrix row_reduce()
   {
-    auto res = *this;
+    auto res = deep_copy();
     for (int i = 0; i < res.height; i++)
     {
+      // 寻找最小主元
       int minRow = i;
       for (int j = i + 1; j < res.height; j++)
       {
@@ -169,6 +174,7 @@ public:
         }
       }
 
+      // 将主元放在对角线
       if (i != minRow)
         res.swap_line(i, minRow);
 
@@ -177,6 +183,7 @@ public:
         return res;
       }
 
+      // 主元行归一化
       double unify = res.at(i, i);
       for (int j = 0; j < width; j++)
       {
@@ -184,8 +191,10 @@ public:
         res.set(i, j, v < 1e-8 ? 0 : v);
       }
 
+      // 其他行消元
       for (int j = 0; j < res.height; j++)
       {
+        // 跳过本行
         if (j == i) continue;
         double ratio = res.at(j, i) / res.at(i, i);
         for (int k = i; k < res.width; k++)
@@ -196,6 +205,34 @@ public:
       }
     }
 
+    return res;
+  }
+
+
+  // 行列式
+  double determinant()
+  {
+    assert(width == height);
+    if (width == 1 && height == 1)
+    {
+      return at(0,0);
+    }
+
+    double res = 0.0;
+    for (int c = 0; c < width; c++)
+    {
+      auto m = deep_copy();
+      m.remove_col(c);
+      m.remove_row(0);
+      if (c % 2 == 0)
+      {
+        res += at(0,c) * m.determinant();
+      }
+      else
+      {
+        res -= at(0,c) * m.determinant();
+      }
+    }
     return res;
   }
 };

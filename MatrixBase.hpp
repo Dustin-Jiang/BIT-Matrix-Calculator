@@ -149,6 +149,7 @@ public:
     at(r,c).get()->value = v;
   };
 
+
   // 交换行
   void swap_line(int f, int t)
   {
@@ -225,5 +226,48 @@ public:
       }
       head = n_head;
     }
+  }
+
+
+  // 移除行
+  void remove_row(int r)
+  {
+    assert(r < height);
+    auto itr = col_begin(at(0, r));
+    if (r != 0)
+    {
+      auto itrp = col_begin(at(r - 1, 0));
+      while (itrp != col_end() && itr != col_end())
+      {
+        (&itrp)->down = (&itr)->down;
+        ++itrp, ++itr;
+      }
+    }
+    else
+    {
+      head = at(1, 0);
+    }
+    --height;
+  }
+
+
+  // 移除列
+  void remove_col(int c)
+  {
+    assert(c < width);
+    auto itc = col_begin(at(0,c));
+    if (c != 0)
+    {
+      auto itcp = col_begin(at(0, c-1));
+      while (itcp != col_end() && itc != col_end())
+      {
+        (&itcp)->right = (&itc)->right;
+        ++itcp, ++itc;
+      }
+    }
+    else {
+      head = at(0, 1);
+    }
+    --width;
   }
 };
