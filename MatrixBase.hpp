@@ -147,4 +147,82 @@ public:
   {
     at(r,c).get()->value = v;
   };
+
+  // 交换行
+  void swap_line(int f, int t)
+  {
+    assert(f!=t);
+    if (f > t) {
+      int tmp = t;
+      t = f;
+      f = tmp;
+    }
+
+    auto itf = line_begin(at(f,0));
+    auto itt = line_begin(at(t,0));
+
+    // 非首行 不相邻
+    if (f != 0 && t - f > 1)
+    {
+      auto itfp = line_begin(at(f-1,0));
+      auto ittp = line_begin(at(t-1,0));
+      while (itf != line_end() && itt != line_end() && itfp != line_end() && ittp != line_end())
+      {
+        (&itfp)->down = itt.head;
+        auto tmp = (&itf)->down;
+        (&itf)->down = (&itt)->down;
+        (&itt)->down = tmp;
+        (&ittp)->down = itf.head;
+        
+        ++itt, ++itf, ++itfp, ++ittp;
+      }
+    }
+
+    // 非首行 相邻
+    if (f != 0 && t - f == 1)
+    {
+      auto itfp = line_begin(at(f - 1, 0));
+      while (itf != line_end() && itt != line_end() && itfp != line_end())
+      {
+        (&itfp)->down = itt.head;
+        auto tmp = (&itt)->down;
+        (&itt)->down = itf.head;
+        (&itf)->down = tmp;
+
+        ++itt, ++itf, ++itfp;
+      }
+    }
+
+    // 首行 不相邻
+    if (f == 0 && t - f > 1)
+    {
+      auto ittp = line_begin(at(t - 1, 0));
+      auto n_head = at(t, 0);
+      while (itf != line_end() && itt != line_end() && ittp != line_end())
+      {
+        auto tmp = (&itf)->down;
+        (&itf)->down = (&itt)->down;
+        (&itt)->down = tmp;
+        (&ittp)->down = itf.head;
+
+        ++itt, ++itf, ++ittp;
+      }
+      head = n_head;
+    }
+
+    // 首行 相邻
+    if (f == 0 && t - f == 1)
+    {
+      auto n_head = at(t, 0);
+      while (itf != line_end() && itt != line_end())
+      {
+        auto tmp = (&itt)->down;
+        (&itt)->down = itf.head;
+        (&itf)->down = tmp;
+
+        ++itt, ++itf;
+      }
+      head = n_head;
+    }
+  }
 };

@@ -24,6 +24,7 @@ public:
   void showT() { base.showT(); }
   double at(int r, int c) { return base(r, c); }
   void set(int r, int c, double v) { base.set(r, c, v); }
+  void swap_line(int f, int t) { base.swap_line(f,t); }
 
 
   // 迭代器初始化
@@ -58,6 +59,19 @@ public:
     return *this;
   }
 
+  // 深拷贝
+  Matrix operator=(Matrix v)
+  {
+    auto n = Matrix {v.width, v.height};
+    auto it_n = n.begin();
+    auto it_v = v.begin();
+    for (; it_n != n.end(); ++it_n, ++it_v)
+    {
+      (&it_n)->value = *it_v;
+    }
+    return n;
+  }
+
   // 重载加法
   Matrix operator+(Matrix addition)
   {
@@ -82,12 +96,13 @@ public:
   // 重载负数
   Matrix operator-()
   {
-    auto it = begin();
-    for (it; it != end(); ++it)
+    auto result = Matrix {width, height};
+    auto it = result.begin();
+    for (it; it != result.end(); ++it)
     {
       (&it)->value = - *it;
     }
-    return *this;
+    return result;
   }
 
   // 重载减法
@@ -109,7 +124,11 @@ public:
     }
     return result;
   }
-  
+
+  // 数乘重载 使用友元重载到`double`上实现`double * Matrix`
+  friend Matrix operator*(double multi, Matrix matrix) {
+    return matrix * multi;
+  };
 
   // 右乘重载
   Matrix operator*(Matrix multi)
@@ -135,6 +154,34 @@ public:
       }
     }
 
+    return result;
+  }
+
+  Matrix row_reduce()
+  {
+    auto result = *this;
+    for (int start_line = 0; start_line < height; start_line++)
+    {
+      for (int calc_line = 0; calc_line < height; calc_line++)
+      {
+        if (calc_line == start_line) continue;
+
+        double ratio = 0;
+        
+        auto it_line = line_begin(start_line);
+        for (int row = 0; it_line != line_end(); ++it_line, row++)
+        {
+          if (*it_line == 0) continue;
+
+          if (ratio == 0)
+          {
+            ratio = at(calc_line, row) / *it_line;
+          }
+
+          result.set(calc_line, row, result.at(calc_line, row) - *it_line * ratio);
+        }
+      }
+    }
     return result;
   }
 };

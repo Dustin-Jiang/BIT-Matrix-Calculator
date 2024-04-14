@@ -49,10 +49,8 @@ namespace iters
   // 遍历行迭代器
   class LineIterator
   {
-  private:
-    std::shared_ptr<MatrixNode> head;
-
   public:
+    std::shared_ptr<MatrixNode> head;
     LineIterator(std::shared_ptr<MatrixNode> h) : head(h){};
     LineIterator &operator++()
     {
