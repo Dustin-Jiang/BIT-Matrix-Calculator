@@ -89,6 +89,10 @@ namespace iters
     {
       return head->value;
     }
+    MatrixNode *operator&() const
+    {
+      return head.get();
+    }
     bool operator!=(const ColumnIterator &i) const
     {
       return head != i.head;

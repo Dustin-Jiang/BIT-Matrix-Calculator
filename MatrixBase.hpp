@@ -129,6 +129,7 @@ public:
   // 取对应位置shared_ptr
   std::shared_ptr<MatrixNode> at(int r, int c)
   {
+    assert(r < height && c < width);
     auto curr = head;
     for (int i = 0; i < r; i++)
     {
