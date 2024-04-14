@@ -182,6 +182,21 @@ public:
         }
       }
     }
+
+    // 形成上三角
+    int lines = 0;
+    for (int col = 0; col < result.width; col ++)
+    {
+      for (int line = lines + 1; line < result.height - 1; line++)
+      {
+        if (result.at(line, col) != 0)
+        {
+          result.swap_line(line, line - 1);
+          lines ++;
+        }
+      }
+    }
+
     return result;
   }
 };
