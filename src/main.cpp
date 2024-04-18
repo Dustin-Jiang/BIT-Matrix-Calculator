@@ -1,41 +1,40 @@
-#include <iostream>
+#include <ftxui/component/component_options.hpp> // for ButtonOption
+#include <ftxui/component/mouse.hpp>             // for ftxui
+#include <functional>                            // for function
+#include <memory>                                // for allocator, shared_ptr
 
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/screen/screen.hpp"
-#include "ftxui/screen/string.hpp"
+#include "ftxui/component/component.hpp" // for Button, operator|=, Renderer, Vertical, Modal
+#include "ftxui/component/screen_interactive.hpp" // for ScreenInteractive, Component
+#include "ftxui/dom/elements.hpp" // for operator|, separator, text, size, Element, vbox, border, GREATER_THAN, WIDTH, center, HEIGHT
 
-int main(void)
-{
-  using namespace ftxui;
+#include "view/AlertView.hpp"
+#include "view/MainView.hpp"
 
-  auto summary = [&]
-  {
-    auto content = vbox({
-        hbox({text(L"- done:   "), text(L"3") | bold}) | color(Color::Green),
-        hbox({text(L"- active: "), text(L"2") | bold}) | color(Color::RedLight),
-        hbox({text(L"- queue:  "), text(L"9") | bold}) | color(Color::Red),
-    });
-    return window(text(L" Summary "), content);
-  };
+using namespace ftxui;
 
-  auto document = //
-      vbox({
-          hbox({
-              summary(),
-              summary(),
-              summary() | flex,
-          }),
-          summary(),
-          summary(),
-      });
+auto button_style = ButtonOption::Animated();
 
-  // Limit the size of the document to 80 char.
-  document = document | size(WIDTH, LESS_THAN, 80);
+int main(int argc, const char *argv[]) {
+  auto screen = ScreenInteractive::Fullscreen();
 
-  auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(document));
-  Render(screen, document);
+  // State of the application:
+  bool modal_shown = false;
 
-  std::cout << screen.ToString() << '\0' << std::endl;
+  // Some actions modifying the state:
+  auto show_modal = [&] { modal_shown = true; };
+  auto hide_modal = [&] { modal_shown = false; };
+  auto exit = screen.ExitLoopClosure();
+  auto do_nothing = [&] {};
 
-  return EXIT_SUCCESS;
+  // Instanciate the main and modal components:
+  auto main_component = MainComponent(show_modal, exit);
+  auto modal_component = ModalComponent(do_nothing, hide_modal);
+
+  // Use the `Modal` function to use together the main component and its modal
+  // window. The |modal_shown| boolean controls whether the modal is shown or
+  // not.
+  main_component |= Modal(modal_component, &modal_shown);
+
+  screen.Loop(main_component);
+  return 0;
 }
