@@ -12,8 +12,12 @@ using namespace ftxui;
 Component ViewBase(Component &inner, std::string title)
 {
   WindowOptions option = {
-    .inner = inner,
-    .title = title
+    inner,
+    title,
+    0,
+    0,
+    Dimension::Full().dimx,
+    Dimension::Full().dimy
   };
   return Window(option);
 }

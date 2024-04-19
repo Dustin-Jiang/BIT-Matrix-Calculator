@@ -3,6 +3,18 @@
   "tasks": [
     {
       "type": "process",
+      "label": "C/C++: CMake 生成调试目标文件",
+      "command": "pwsh",
+      "args": [
+        "./script/debug-target.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build"
+    },
+    {
+      "type": "process",
       "label": "C/C++: CMake 生成目标文件",
       "command": "pwsh",
       "args": [
