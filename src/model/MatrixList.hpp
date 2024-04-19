@@ -54,6 +54,16 @@ public:
     return result;
   }
 
+  auto set(int index, Matrix m)
+  {
+    if (index >= size())
+    {
+      return ;
+    }
+    list[index] = m;
+    return ;
+  }
+
   std::vector<std::string> entries()
   {
     std::vector<std::string> result;

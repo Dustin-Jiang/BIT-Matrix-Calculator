@@ -4,7 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/build/_deps/ftxui-src/src"
+                "${workspaceFolder}/build/_deps/ftxui-src/src",
+                "${workspaceFolder}/build/_deps/ftxui-grid-container-src/include"
             ],
             "defines": [
                 "_DEBUG",

@@ -35,7 +35,12 @@ int main(int argc, const char *argv[]) {
   std::vector<std::vector<std::shared_ptr<double>>> m{};
 
   // MatrixEditView
-  std::vector<std::vector<std::shared_ptr<std::string>>> matrix_editor_ctx{};
+  Component matrix_edit_view, matrix_editor_comfirm_button, matrix_editor_input_row;
+  std::vector<std::vector<std::shared_ptr<std::string>>>  matrix_editor_ctx{};
+  std::string matrix_editor_col_v = "";
+  std::string matrix_editor_row_v = "";
+  std::string matrix_editor_value_v = "";
+
 
   // Some actions modifying the state:
   int tab_matrix_define_selected = 0;
@@ -49,9 +54,18 @@ int main(int argc, const char *argv[]) {
   };
   auto hide_matrix_define_view = [&] { matrix_define_view_shown = false; };
 
+
+  auto reset_matrix_edit_view_focus = [&]()
+  {
+    matrix_editor_input_row->TakeFocus();
+  };
   auto show_matrix_edit_view = [&] {
     debug.push_back(std::to_string(m.size()) + " " + std::to_string(m[0].size()));
     matrix_editor_ctx = std::vector<std::vector<std::shared_ptr<std::string>>>{};
+
+    matrix_editor_col_v = "";
+    matrix_editor_row_v = "";
+    matrix_editor_value_v = "";
 
     for (auto i : m) {
       std::vector<std::shared_ptr<std::string>> row;
@@ -62,8 +76,8 @@ int main(int argc, const char *argv[]) {
     }
 
     matrix_edit_view_shown = true;
+    reset_matrix_edit_view_focus();
 
-    debug.push_back("Line 64 " + std::to_string(reinterpret_cast<std::uintptr_t>(&m)));
     debug.push_back("Line 65 " + std::to_string(matrix_editor_ctx.size()) + " " + std::to_string(matrix_editor_ctx[0].size()));
   };
   auto hide_matrix_edit_view = [&] { matrix_edit_view_shown = false; };
@@ -106,16 +120,6 @@ int main(int argc, const char *argv[]) {
     return false;
   });
   auto tab_matrix_define_entries = matrix_list.entries();
-  auto edit_matrix = [&](std::vector<std::vector<double>> *v) {
-    matrix_list.add(v);
-  };
-
-  std::vector<std::string> tab_2_entries{
-      "Hello",
-      "Hi",
-      "Hay",
-  };
-  int tab_2_selected = 0;
 
   std::vector<std::string> tab_3_entries{
       "Table",
@@ -125,58 +129,102 @@ int main(int argc, const char *argv[]) {
   };
   int tab_3_selected = 0;
 
-  auto tab_container = Container::Tab(
-      {
-          Menu(&tab_matrix_define_entries, &tab_matrix_define_selected) | CatchEvent(tab_matrix_define_action),
-          Radiobox(&tab_2_entries, &tab_2_selected),
-          Radiobox(&tab_3_entries, &tab_3_selected),
-      },
-      &tab_selected);
-
-  auto main_component = Container::Vertical({
-      tab_toggle,
-      tab_container,
-  });
-  main_component = Renderer(main_component, [&] {
-    return vbox({
-        tab_toggle->Render(),
-        separator(),
-        tab_container->Render(),
-        separator(),
-        List(debug)->Render() | size(HEIGHT, LESS_THAN, 20)
-    });
-  });
-  main_component = ViewBase(main_component, "MainView");
-
 
 
   // MatrixEditView
-  auto push_matrix = [&]() {
-    debug.push_back("Line 130 " + std::to_string(m.size()) + " " + std::to_string(m[0].size()));
-    matrix_list.add(&m);
-    tab_matrix_define_entries = matrix_list.entries();
-    debug.push_back("Line 133 " + std::to_string(matrix_list.size()));
-    debug.push_back("Line 134 " + tab_matrix_define_entries[0]);
+  auto set_matrix = [&]() {
+    auto matrix = std::vector<std::vector<double>> {};
+    for (auto i : m) {
+      std::vector<double> row;
+      for (auto j : i) {
+        row.push_back(*j);
+      }
+      matrix.push_back(row);
+    }
 
-    m = std::vector<std::vector<std::shared_ptr<double>>>{};
+    matrix_list.set(tab_matrix_define_selected, Matrix{&matrix});
+
+    tab_matrix_define_entries = matrix_list.entries();
+
     hide_matrix_edit_view();
   };
 
-  auto matrix_editor_comfirm_button = ButtonTiny("添加矩阵", push_matrix);
-  auto matrix_edit_view_component = MatrixEditor(&matrix_editor_ctx);
-  // auto matrix_edit_view_component = Renderer([&] {
-  //   return vbox({
-  //     MatrixEditor(&matrix_editor_ctx)->Render(), 
-  //     text([&]
-  //     {
-  //       return "MatrixEditView " + std::to_string(matrix_editor_ctx.size()) + " " + std::to_string(matrix_editor_ctx[0].size());
-  //     }())
-  //   });
-  // });
-  matrix_edit_view_component = Container::Vertical({
-    matrix_edit_view_component, matrix_editor_comfirm_button
+  auto edit_matrix = std::function<void ()>([&]() {
+    auto reset_vals = [&]()
+    {
+      matrix_editor_row_v = "";
+      matrix_editor_col_v = "";
+      matrix_editor_value_v = "";
+      reset_matrix_edit_view_focus();
+    };
+
+    if (matrix_editor_row_v == "" || matrix_editor_col_v == "" || matrix_editor_value_v == "")
+    {
+      reset_vals();
+      return;
+    }
+    int matrix_edit_row = std::stoi(matrix_editor_row_v) - 1;
+    int matrix_edit_col = std::stoi(matrix_editor_col_v) - 1;
+    if (matrix_edit_row >= m.size() || matrix_edit_col >= m[0].size())
+    {
+      reset_vals();
+      return;
+    }
+    double value = std::stod(matrix_editor_value_v);
+
+    *m[matrix_edit_row][matrix_edit_col] = value;
+    *matrix_editor_ctx[matrix_edit_row][matrix_edit_col] = std::to_string(value);
+
+    reset_vals();
   });
-  auto matrix_edit_view = ViewBase(matrix_edit_view_component, "编辑矩阵");
+
+  matrix_editor_comfirm_button = ButtonTiny("确定", set_matrix);
+  auto matrix_editor_cancel_button = ButtonTiny("取消", hide_matrix_edit_view);
+  matrix_editor_input_row = Input(&matrix_editor_row_v, { .placeholder = "第X行", .multiline = false, });
+  auto matrix_editor_input_col = Input(&matrix_editor_col_v, { .placeholder = "第Y列", .multiline = false, });
+  auto matrix_editor_input_value = Input(&matrix_editor_value_v, { .placeholder = "更改为", .multiline = false });
+
+  auto matrix_editor_control = Container::Horizontal({
+    matrix_editor_input_row | underlined | border,
+    matrix_editor_input_col | underlined | border,
+    matrix_editor_input_value | underlined | border,
+    Button("修改", edit_matrix, button_style),
+  });
+
+  auto matrix_edit_view_component = Container::Vertical({
+    matrix_editor_control,
+    matrix_editor_comfirm_button,
+    matrix_editor_cancel_button
+  });
+
+  matrix_edit_view_component = Renderer(matrix_edit_view_component, [&] {
+    return vbox({
+      [&]
+      {
+        std::vector<Components> matrix_edit_view_components;
+
+        for (auto i : matrix_editor_ctx) {
+          Components row;
+          for (auto j : i) {
+            row.push_back(Text(j.get()) | flex | border);
+          }
+          matrix_edit_view_components.push_back(row);
+        }
+        auto matrix_edit_view_component = GridContainer(matrix_edit_view_components);
+        return matrix_edit_view_component;
+      }()->Render(),
+      filler(),
+      separator(),
+      text("编辑矩阵") | bold,
+      matrix_editor_control->Render(),
+      separator(),
+      vbox({
+        matrix_editor_comfirm_button->Render(),
+        matrix_editor_cancel_button->Render(),
+      })
+    });
+  });
+  matrix_edit_view = ViewBase(matrix_edit_view_component, "查看矩阵");
 
 
 
@@ -184,23 +232,22 @@ int main(int argc, const char *argv[]) {
   auto set_size = [&] {
     height = std::stoi(height_v);
     width = std::stoi(width_v);
+
+    auto matrix = std::vector<std::vector<double>> {};
     for (int i = 0; i < height; i++) {
-      std::vector<std::shared_ptr<double>> row{};
+      std::vector<std::shared_ptr<double>> row_p{};
+      std::vector<double> row{};
       for (int j = 0; j < width; j++) {
-        row.push_back(std::make_shared<double>(0.0));
+        row_p.push_back(std::make_shared<double>(0.0));
+        row.push_back(0.0);
       }
-      m.push_back(row);
+      m.push_back(row_p);
+      matrix.push_back(row);
     }
-    debug.push_back([&] {
-      std::string res;
-      if (m.size() == 0) {
-        return std::string{"Empty"};
-      }
-      for (auto i = m[0].begin(); i != m[0].end(); ++i) {
-        res += std::to_string(**i) + " ";
-      }
-      return res;
-    }());
+
+    matrix_list.add(&matrix);
+    tab_matrix_define_entries = matrix_list.entries();
+
     hide_matrix_define_view();
     show_matrix_edit_view();
   };
@@ -216,13 +263,36 @@ int main(int argc, const char *argv[]) {
               Button("确定", set_size, button_style) | flex,
           }),
       }),
-      Text(&width_v),
       ButtonTiny("返回", hide_matrix_define_view),
   });
 
   auto matrix_define_view = ViewBase(matrix_define_view_component, "定义矩阵");
 
 
+
+  // MainView
+  auto tab_container = Container::Tab(
+      {
+          Menu(&tab_matrix_define_entries, &tab_matrix_define_selected) | CatchEvent(tab_matrix_define_action),
+          Text("Test"),
+          Radiobox(&tab_3_entries, &tab_3_selected),
+      },
+      &tab_selected);
+
+  auto main_component = Container::Vertical({
+      tab_toggle,
+      tab_container,
+  });
+  main_component = Renderer(main_component, [&] {
+    return vbox({
+        tab_toggle->Render(),
+        separator(),
+        tab_container->Render(),
+        separator(),
+        // List(debug)->Render() | size(HEIGHT, LESS_THAN, 20)
+    });
+  });
+  main_component = ViewBase(main_component, "矩阵计算器");
 
   main_component |= Modal(matrix_edit_view, &matrix_edit_view_shown);
   main_component |= Modal(matrix_define_view, &matrix_define_view_shown);
