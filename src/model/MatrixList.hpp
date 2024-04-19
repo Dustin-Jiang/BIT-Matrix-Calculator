@@ -17,6 +17,7 @@ public:
     }
   };
   MatrixList(): list() {};
+  MatrixList(vector<Matrix> l): list(l) {};
 
   void add(std::vector<std::vector<double>> *m)
   {
@@ -63,6 +64,11 @@ public:
     }
     result.push_back("定义矩阵");
     return result;
+  }
+
+  int size()
+  {
+    return list.size();
   }
 };
 

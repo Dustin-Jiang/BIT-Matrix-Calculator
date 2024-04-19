@@ -13,6 +13,7 @@
 #include "components/List.hpp"
 #include "components/Text.hpp"
 #include "components/ViewBase.hpp"
+#include "model/Matrix.hpp"
 #include "model/MatrixList.hpp"
 // #include "view/MatrixEditView.hpp"
 
@@ -78,7 +79,11 @@ int main(int argc, const char *argv[]) {
   int tab_selected = 0;
   auto tab_toggle = Toggle(&tab_values, &tab_selected);
 
-  auto matrix_list = MatrixList{};
+  auto matrix_list = MatrixList{
+    {
+      Matrix {3,3}
+    },
+  };
   auto tab_matrix_define_action = std::function<bool(Event event)>([&](Event event)
   {
     debug.push_back("Line 84 " + std::to_string(event.mouse().button));
@@ -87,11 +92,10 @@ int main(int argc, const char *argv[]) {
       (event == Event::Return) ||
       (event.is_mouse() && event.mouse().motion == event.mouse().Released && event.mouse().button == Mouse::Left)
     ) {
+      debug.push_back("Line 92 " + std::to_string(matrix_list.size()) + " " + std::to_string(tab_matrix_define_selected));
       if (tab_matrix_define_selected == matrix_list.size())
       {
-        debug.push_back("Line 92 " + std::to_string(matrix_list.size()) + " " + std::to_string(tab_matrix_define_selected));
-        if (tab_matrix_define_selected == 0)
-          show_matrix_define_view();
+        show_matrix_define_view();
       }
       else
       {

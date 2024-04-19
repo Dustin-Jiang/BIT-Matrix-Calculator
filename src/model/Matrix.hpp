@@ -1,3 +1,6 @@
+#ifndef MATRIX_HPP
+#define MATRIX_HPP
+
 #include "matrixbase.hpp"
 #include <vector>
 #include <cmath>
@@ -248,3 +251,5 @@ public:
     return res;
   }
 };
+
+#endif
