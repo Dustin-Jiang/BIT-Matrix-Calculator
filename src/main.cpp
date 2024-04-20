@@ -6,10 +6,10 @@
 #include "ftxui/component/component.hpp" // for Button, operator|=, Renderer, Vertical, Modal
 #include "ftxui/component/screen_interactive.hpp" // for ScreenInteractive, Component
 #include "ftxui/dom/elements.hpp" // for operator|, separator, text, size, Element, vbox, border, GREATER_THAN, WIDTH, center, HEIGHT
+#include "ftxui-grid-container/grid-container.hpp"
 
 #include "components/ButtonList.hpp"
 #include "components/ButtonTiny.hpp"
-#include "components/MatrixEditor.hpp"
 #include "components/List.hpp"
 #include "components/Text.hpp"
 #include "components/ViewBase.hpp"
