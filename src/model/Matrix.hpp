@@ -146,6 +146,16 @@ public:
     return result;
   }
 
+  // 数除重载
+  Matrix operator/(double scale) {
+    Matrix result{width, height};
+    int count = 0;
+    for (auto it = base.begin(); it != base.end(); ++it) {
+      result.set(count / width, count % width, *it / scale);
+      count++;
+    }
+    return result;
+  }
 
   // 深拷贝
   Matrix deep_copy()
