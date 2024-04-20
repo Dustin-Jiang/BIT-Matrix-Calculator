@@ -87,8 +87,8 @@ int main(int argc, const char *argv[]) {
   // Instanciate the main and modal components:
   std::vector<std::string> tab_values{
       "定义/编辑",
-      "tab_2",
-      "tab_3",
+      "计算",
+      "关于",
   };
   int tab_selected = 0;
   auto tab_toggle = Toggle(&tab_values, &tab_selected);
@@ -270,11 +270,32 @@ int main(int argc, const char *argv[]) {
 
 
 
+  // Calc Panel
+  auto matrix_calc = [&] {};
+  auto tab_matrix_calc_v = std::string{""};
+  auto tab_matrix_calc_input = Input(&tab_matrix_calc_v);
+  auto tab_matrix_calc_comfirm = Button("计算", matrix_calc, button_style);
+  auto tab_matrix_calc_panel = Container::Horizontal({
+    tab_matrix_calc_input,
+    tab_matrix_calc_comfirm
+  });
+  tab_matrix_calc_panel = Renderer(tab_matrix_calc_panel, [&]()
+  {
+    return vbox({
+      hbox(
+        tab_matrix_calc_input->Render() | underlined | border | size(HEIGHT, GREATER_THAN, 3),
+        separator(),
+        tab_matrix_calc_comfirm->Render() | size(WIDTH, GREATER_THAN, 8)
+      )
+    });
+  });
+
+
   // MainView
   auto tab_container = Container::Tab(
       {
           Menu(&tab_matrix_define_entries, &tab_matrix_define_selected) | CatchEvent(tab_matrix_define_action),
-          Text("Test"),
+          tab_matrix_calc_panel,
           Radiobox(&tab_3_entries, &tab_3_selected),
       },
       &tab_selected);
