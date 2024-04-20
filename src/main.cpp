@@ -13,6 +13,7 @@
 #include "components/List.hpp"
 #include "components/Text.hpp"
 #include "components/ViewBase.hpp"
+#include "model/Expression.hpp"
 #include "model/Matrix.hpp"
 #include "model/MatrixList.hpp"
 // #include "view/MatrixEditView.hpp"
@@ -60,7 +61,7 @@ int main(int argc, const char *argv[]) {
     matrix_editor_input_row->TakeFocus();
   };
   auto show_matrix_edit_view = [&] {
-    debug.push_back(std::to_string(m.size()) + " " + std::to_string(m[0].size()));
+    // debug.push_back(std::to_string(m.size()) + " " + std::to_string(m[0].size()));
     matrix_editor_ctx = std::vector<std::vector<std::shared_ptr<std::string>>>{};
 
     matrix_editor_col_v = "";
@@ -78,7 +79,7 @@ int main(int argc, const char *argv[]) {
     matrix_edit_view_shown = true;
     reset_matrix_edit_view_focus();
 
-    debug.push_back("Line 65 " + std::to_string(matrix_editor_ctx.size()) + " " + std::to_string(matrix_editor_ctx[0].size()));
+    // debug.push_back("Line 65 " + std::to_string(matrix_editor_ctx.size()) + " " + std::to_string(matrix_editor_ctx[0].size()));
   };
   auto hide_matrix_edit_view = [&] { matrix_edit_view_shown = false; };
 
@@ -100,13 +101,13 @@ int main(int argc, const char *argv[]) {
   };
   auto tab_matrix_define_action = std::function<bool(Event event)>([&](Event event)
   {
-    debug.push_back("Line 84 " + std::to_string(event.mouse().button));
-    debug.push_back("Line 85 " + std::to_string(tab_matrix_define_selected));
+    // debug.push_back("Line 84 " + std::to_string(event.mouse().button));
+    // debug.push_back("Line 85 " + std::to_string(tab_matrix_define_selected));
     if (
       (event == Event::Return) ||
       (event.is_mouse() && event.mouse().motion == event.mouse().Released && event.mouse().button == Mouse::Left)
     ) {
-      debug.push_back("Line 92 " + std::to_string(matrix_list.size()) + " " + std::to_string(tab_matrix_define_selected));
+      // debug.push_back("Line 92 " + std::to_string(matrix_list.size()) + " " + std::to_string(tab_matrix_define_selected));
       if (tab_matrix_define_selected == matrix_list.size())
       {
         show_matrix_define_view();
@@ -271,22 +272,56 @@ int main(int argc, const char *argv[]) {
 
 
   // Calc Panel
-  auto matrix_calc = [&] {};
   auto tab_matrix_calc_v = std::string{""};
-  auto tab_matrix_calc_input = Input(&tab_matrix_calc_v);
+  auto tab_matrix_calc_r = Text("");
+  auto matrix_calc = [&] { 
+    auto result_c = Expr::calculate(tab_matrix_calc_v, matrix_list);
+    if (result_c.isMatrix)
+    {
+      auto result = std::get<Matrix>(result_c.evaluate());
+      debug.push_back(result.to_string());
+      tab_matrix_calc_r = [&]
+      {
+        std::vector<Components> matrix_calc_result_components{};
+        for (int i = 0; i < result.height; i++) {
+          Components row;
+          for (auto j = result.line_begin(i); j != result.line_end(); ++j) {
+            row.push_back(Text(std::to_string(*j)) | flex | border);
+          }
+          matrix_calc_result_components.push_back(row);
+        }
+        auto matrix_edit_view_component = GridContainer(matrix_calc_result_components);
+        return matrix_edit_view_component;
+      }();
+    }
+    else
+    {
+      auto result = std::get<double>(result_c.evaluate());
+      debug.push_back(std::to_string(result));
+      tab_matrix_calc_r = Text(std::to_string(result));
+    }
+  };
   auto tab_matrix_calc_comfirm = Button("计算", matrix_calc, button_style);
+  auto tab_matrix_calc_input = Input(&tab_matrix_calc_v, { .on_enter = [&]
+  {
+    tab_matrix_calc_comfirm->TakeFocus();
+  }});
   auto tab_matrix_calc_panel = Container::Horizontal({
     tab_matrix_calc_input,
-    tab_matrix_calc_comfirm
+    tab_matrix_calc_comfirm,
+    tab_matrix_calc_r
   });
   tab_matrix_calc_panel = Renderer(tab_matrix_calc_panel, [&]()
   {
     return vbox({
       hbox(
-        tab_matrix_calc_input->Render() | underlined | border | size(HEIGHT, GREATER_THAN, 3),
+        tab_matrix_calc_input->Render() | border | size(HEIGHT, GREATER_THAN, 5),
         separator(),
-        tab_matrix_calc_comfirm->Render() | size(WIDTH, GREATER_THAN, 8)
-      )
+        tab_matrix_calc_comfirm->Render() | size(WIDTH, GREATER_THAN, 8) | size(HEIGHT, GREATER_THAN, 5) | yflex | center
+      ),
+      separator(),
+      text("计算结果") | bold,
+      tab_matrix_calc_r->Render()
     });
   });
 
@@ -310,7 +345,7 @@ int main(int argc, const char *argv[]) {
         separator(),
         tab_container->Render(),
         separator(),
-        // List(debug)->Render() | size(HEIGHT, LESS_THAN, 20)
+        List(debug)->Render() | size(HEIGHT, LESS_THAN, 20)
     });
   });
   main_component = ViewBase(main_component, "矩阵计算器");

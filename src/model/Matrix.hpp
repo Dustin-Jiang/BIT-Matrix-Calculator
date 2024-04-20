@@ -20,6 +20,10 @@ public:
   {
     setAll(*v);
   };
+  Matrix(std::vector<std::vector<double>> v) : base(v.front().size(), v.size()), width(v.front().size()), height(v.size())
+  {
+    setAll(v);
+  };
 
   // 暴露MatrixBase中部分方法
   void show() { base.show(); };

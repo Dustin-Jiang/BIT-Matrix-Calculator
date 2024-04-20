@@ -5,178 +5,299 @@
 #include <stack>
 #include <variant>
 
+#include "MatrixList.hpp"
+
 using std::variant;
+using std::get;
 
 typedef variant<Matrix, double> Value;
 
 namespace Expr {
 
-class Expression
-{
-public:
-  bool isMatrix;
-  bool isConst = false;
-  int height = 0;
-  int width = 0;
-  virtual Value evaluate() const = 0;
-};
-
-class Const : public Expression
+class Const
 {
 private:
   variant<Matrix, double> value;
+public:
   bool isMatrix = false;
-  bool isConst = true;
   int height = 0;
   int width = 0;
+  double _v_f = 0.0;
 
 public:
   Value evaluate() const { return value; };
-  Const(double v) : value(v), isMatrix(false) {};
+  Const(double v) : value(v), isMatrix(false), _v_f(v) {};
   Const(Matrix m) : value(m), isMatrix(true), height(m.height), width(m.width) {};
 };
 
-class BinaryOp : public Expression
+Const process(std::stack<Const> &st, char op)
 {
-private:
-  Expression *left;
-  Expression *right;
-  char op;
-
-  bool isMatrix;
-  bool isConst = false;
-  int height = 0;
-  int width = 0;
-public:
-  Value evaluate() const {
-    // 矩阵运算
-    if (left->isMatrix && right->isMatrix)
+  if (op < 0) {
+    auto l = st.top();
+    st.pop();
+    if (-op == '-')
     {
-      auto left_v = std::get<Matrix>(left->evaluate());
-      auto right_v = std::get<Matrix>(right->evaluate());
-      if (op == '+')
+      if (l.isMatrix)
       {
-        return left_v + right_v;
-      }
-      else if (op == '-')
-      {
-        return left_v - right_v;
-      }
-      else if (op == '*')
-      {
-        return left_v * right_v;
-      }
-    }
-    // 矩阵数乘
-    else if ((left->isMatrix == !(right->isMatrix)) && op == '*') {
-      if (left->isMatrix)
-      {
-        auto left_v = std::get<Matrix>(left->evaluate());
-        auto right_v = std::get<double>(right->evaluate());
-        return left_v * right_v;
+        auto l_v = get<Matrix>(l.evaluate());
+        return Const { -l_v };
       }
       else
       {
-        auto left_v = std::get<double>(left->evaluate());
-        auto right_v = std::get<Matrix>(right->evaluate());
-        return right_v * left_v;
+        auto l_v = get<double>(l.evaluate());
+        return Const { -l_v };
       }
     }
-    // 数字运算
-    else {
-      auto left_v = std::get<double>(left->evaluate());
-      auto right_v = std::get<double>(right->evaluate());
-      if (op == '+')
-      {
-        return left_v + right_v;
-      }
-      else if (op == '-')
-      {
-        return left_v - right_v;
-      }
-      else if (op == '*')
-      {
-        return left_v * right_v;
-      }
-      else if (op == '/')
-      {
-        return left_v / right_v;
-      }
+    else
+    {
+      throw "RuntimeError: Undefined behavior";
     }
-  };
+  }
+  else
+  {
+    auto r = st.top();
+    st.pop();
+    auto l = st.top();
+    st.pop();
 
-  BinaryOp(Expression *l, Expression *r, char o) : left(l), right(r), op(o) {
     // 判断合法性
-    if ((left->isMatrix && right->isMatrix))
+    if ((l.isMatrix && r.isMatrix))
     {
       if (op == '*')
       {
-        assert(left->height == right->width);
-        height = left->height;
-        width = right->width;
+        if (l.height != r.width)
+        {
+          throw "MathError: 矩阵尺寸不匹配";
+        }
       }
       else {
-        assert(left->height == right->height && left->width == right->width);
-        height = left->height;
-        width = left->width;
+        if (l.height != r.height || l.width != r.width)
+        {
+          throw "MathError: 矩阵尺寸不匹配";
+        }
       }
     }
 
-    if ('/' != op)
+    if ('/' == op)
     {
       // 暂不支持矩阵除法
-      assert(!(left->isMatrix && right->isMatrix));
-      // 除法右边只支持数
-      assert(!(left->isMatrix) && right->isMatrix);
+      if (l.isMatrix && r.isMatrix)
+      {
+        throw "MathError: 暂不支持矩阵除法";
+      }
+      // 除法右边不支持矩阵
+      if (!(l.isMatrix) && r.isMatrix)
+      {
+        throw "MathError: 除法右边不支持矩阵";
+      }
     }
 
-
-    // 判断结果是否为矩阵
-    if (left->isMatrix == !(right->isMatrix) && op == '*')
-    {
-      // 只有一个是矩阵, 为数乘
-      isMatrix = true;
+    auto l_v = l.evaluate(), r_v = r.evaluate();
+    // 计算
+    if (op == '+') {
+      if (l.isMatrix && r.isMatrix)
+      {
+        return Const{get<Matrix>(l_v) + get<Matrix>(r_v)};
+      }
+      else if (!l.isMatrix && !l.isMatrix)
+      {
+        return Const{get<double>(l_v) + get<double>(r_v)};
+      }
+      else
+      {
+        throw "MathError: Matrix + Const";
+      }
     }
-    else if (left->isMatrix && right->isMatrix)
+    else if (op == '-')
     {
-      // 两个都是矩阵, 为矩阵乘法
-      isMatrix = true;
+      if (l.isMatrix && r.isMatrix)
+      {
+        return Const{get<Matrix>(l_v) - get<Matrix>(r_v)};
+      }
+      else if (!l.isMatrix && !l.isMatrix)
+      {
+        return Const{get<double>(l_v) - get<double>(r_v)};
+      }
+      else
+      {
+        throw "MathError: Matrix - Const";
+      }
+    }
+    else if (op == '*')
+    {
+      if (l.isMatrix && r.isMatrix)
+      {
+        return Const{get<Matrix>(l_v) * get<Matrix>(r_v)};
+      }
+      else if (l.isMatrix == !(r.isMatrix))
+      {
+        // 数乘
+        if (l.isMatrix)
+        {
+          return Const{get<Matrix>(l_v) * get<double>(r_v)};
+        }
+        else
+        {
+          return Const{get<double>(l_v) * get<Matrix>(r_v)};
+        }
+      }
+      else
+      {
+        auto l_d = get<double>(l_v), r_d = get<double>(r_v);
+        return Const{get<double>(l_v) * get<double>(r_v)};
+      }
+    }
+    else if (op == '/') {
+      if (l.isMatrix && !(r.isMatrix))
+      {
+        return Const{get<Matrix>(l_v) / get<double>(r_v)};
+      }
+      else
+      {
+        return Const{get<double>(l_v) / get<double>(r_v)};
+      }
     }
     else
     {
-      isMatrix = false;
+      throw "RuntimeError: Undefined behavior";
     }
-  };
+  }
 };
 
-Value calculate(std::string &expr)
-{
-  std::stack<Expression *> exprs;
-  std::stack<char> ops;
+bool is_op(char c) { return c == '+' || c == '-' || c == '*' || c == '/'; };
+bool is_unary(char c) { return c == '-'; }
+int priority(char op) {
+  if (op < 0) // unary operator
+    return 3;
+  if (op == '+' || op == '-')
+    return 1;
+  if (op == '*' || op == '/')
+    return 2;
+  return -1;
+}
+bool is_num(char c) { return c >= '0' && c <= '9'; }
+bool is_double(char c) { return is_num(c) || c == '.'; }
+bool is_double(char c, int &dots) {
+  if (c == '.') dots++;
+  return is_num(c) || c == '.';
+}
 
-  for (auto i : expr)
+Const calculate(std::string expr, MatrixList &ml)
+{
+  std::stack<Const> exprs;
+  std::stack<char> ops;
+  // 初始时可能为单元运算
+  bool may_be_unary = true;
+
+  for (int i = 0; i < expr.size(); i++)
   {
-    if (i == ' ')
+    if (expr[i] == ' ')
     {
       continue;
     }
-    if (i == '+' || i == '-' || i == '*' || i == '/')
+    if (expr[i] == '(')
     {
-      // 二元运算符
+      ops.push('(');
+      // 左括号后可能为单元运算
+      may_be_unary = true;
     }
-    else if (i == '(')
+    else if (expr[i] == ')')
     {
-      // 左括号
+      while (ops.top() != '(')
+      {
+        exprs.push(process(exprs, ops.top()));
+        ops.pop();
+      }
+      // 左括号出栈
+      ops.pop();
+      // 不会为单元运算
+      may_be_unary = false;
     }
-    else if (i == ')')
+    else if (is_op(expr[i]))
     {
-      // 右括号
+      char op = expr[i];
+      if (may_be_unary && is_unary(op))
+      {
+        op = -op;
+      }
+      while (
+        !ops.empty() &&
+        ((op >= 0 && priority(ops.top()) >= priority(op)) ||
+        (op < 0 && priority(ops.top()) > priority(op)))
+      )
+      {
+        exprs.push(process(exprs, op));
+        ops.pop();
+      }
+      ops.push(op);
+      may_be_unary = true;
     }
-    else
+    // 读取数字
+    else if (is_double(expr[i]))
     {
-      
+      std::string number = "";
+      int dots = 0;
+      while (
+        i < expr.size() &&
+        is_double(expr[i], dots)
+      )
+      {
+        number += expr[i];
+        i++;
+      }
+      i--;
+
+      if (dots > 1)
+      {
+        throw "MathError: 错误的小数点";
+      }
+
+      auto r = std::stod(number);
+      exprs.push(Const{r});
+      may_be_unary = false;
+    }
+    // 读取矩阵
+    else if (expr[i] == 'M')
+    {
+      if(expr[++i] == 'a' && expr[++i] == 't')
+      {
+        std::string matrix_num = "";
+        ++i;
+        while (i < expr.size() && is_num(expr[i]))
+        {
+          matrix_num += expr[i++];
+        }
+        --i;
+        
+        int idx = std::stoi(matrix_num) - 1;
+        if (idx >= (ml).size())
+        {
+          throw "ReferenceError: 不存在的矩阵";
+        }
+        exprs.push(Const{ (ml).get_mat(idx) });
+        may_be_unary = false;
+      }
+      else {
+        throw "SyntaxError: 解析失败";
+      }
+    }
+    else {
+      throw "SyntaxError: 解析失败";
     }
   }
+
+  while (!ops.empty())
+  {
+    auto r = process(exprs, ops.top());
+
+    // double v = 0.0;
+    // if (!r.isMatrix) v = get<double>(r.evaluate());
+    exprs.push(r);
+    ops.pop();
+  }
+
+  auto r = exprs.top();
+  return r;
 }
 
 } // namespace Expr

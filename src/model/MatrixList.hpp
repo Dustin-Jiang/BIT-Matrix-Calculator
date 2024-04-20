@@ -4,7 +4,7 @@
 #include "Matrix.hpp"
 #include <vector>
 
-class MatrixList: public std::vector<Matrix>
+class MatrixList
 {
 private:
   std::vector<Matrix> list;
@@ -17,7 +17,7 @@ public:
     }
   };
   MatrixList(): list() {};
-  MatrixList(vector<Matrix> l): list(l) {};
+  MatrixList(std::vector<Matrix> l): list(l) {};
 
   void add(std::vector<std::vector<double>> *m)
   {
@@ -54,6 +54,20 @@ public:
     return result;
   }
 
+  Matrix get_mat(int index)
+  {
+    std::vector<std::vector<double>> result;
+    auto m = list[index];
+    for (int i = 0; i < m.height; i++) {
+      std::vector<double> row;
+      for (auto j = m.line_begin(i); j != m.line_end(); ++j) {
+        row.push_back(*j);
+      }
+      result.push_back(row);
+    }
+    return Matrix{ result };
+  }
+
   auto set(int index, Matrix m)
   {
     if (index >= size())
@@ -62,6 +76,11 @@ public:
     }
     list[index] = m;
     return ;
+  }
+
+  auto operator[] (std::size_t index)
+  {
+    return get(index);
   }
 
   std::vector<std::string> entries()
@@ -79,6 +98,11 @@ public:
   int size()
   {
     return list.size();
+  }
+
+  auto push_back(Matrix m)
+  {
+    return list.push_back(m);
   }
 };
 
