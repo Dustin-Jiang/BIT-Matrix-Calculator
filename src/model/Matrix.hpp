@@ -24,6 +24,7 @@ public:
   // 暴露MatrixBase中部分方法
   void show() { base.show(); };
   void showT() { base.showT(); }
+  std::string to_string() { return base.to_string(); }
   double at(int r, int c) { return base(r, c); }
   void set(int r, int c, double v) { base.set(r, c, v); }
   void swap_line(int f, int t) { base.swap_line(f, t); }

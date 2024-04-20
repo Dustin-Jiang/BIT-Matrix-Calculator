@@ -98,6 +98,20 @@ public:
     }
   };
 
+  std::string to_string()
+  {
+    std::string s = "";
+    for (int i = 0; i < height; i++)
+    {
+      for (auto it = line_begin(at(i,0)); it != line_end(); ++it)
+      {
+        s += std::to_string(*it) + "\t";
+      }
+      s += "\n";
+    }
+    return s;
+  }
+
 
   // 显示转置矩阵
   void showT()
