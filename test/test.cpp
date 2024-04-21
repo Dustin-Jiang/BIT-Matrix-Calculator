@@ -72,9 +72,10 @@ int main()
   ml.push_back(r5);
   ml.push_back(r6);
 
-  std::string expr = "2*(-1)";
+  std::string expr = "Mat3";
 
   // auto mat1 = ml[0];
+  try {
   auto result_c = Expr::calculate(expr, ml);
   if (result_c.isMatrix)
     {
@@ -86,6 +87,10 @@ int main()
       auto result = std::get<double>(result_c.evaluate());
       std::cout << std::to_string(result) << std::endl;
     }
-
+  }
+  catch (std::exception &ex)
+  {
+    std::cout << ex.what() << std::endl;
+  }
   return 0;
 }

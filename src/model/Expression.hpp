@@ -50,7 +50,7 @@ Const process(std::stack<Const> &st, char op)
     }
     else
     {
-      throw "RuntimeError: Undefined behavior";
+      throw std::runtime_error("RuntimeError: Undefined behavior");
     }
   }
   else
@@ -67,13 +67,13 @@ Const process(std::stack<Const> &st, char op)
       {
         if (l.height != r.width)
         {
-          throw "MathError: 矩阵尺寸不匹配";
+          throw std::runtime_error("MathError: 矩阵尺寸不匹配");
         }
       }
       else {
         if (l.height != r.height || l.width != r.width)
         {
-          throw "MathError: 矩阵尺寸不匹配";
+          throw std::runtime_error("MathError: 矩阵尺寸不匹配");
         }
       }
     }
@@ -83,12 +83,12 @@ Const process(std::stack<Const> &st, char op)
       // 暂不支持矩阵除法
       if (l.isMatrix && r.isMatrix)
       {
-        throw "MathError: 暂不支持矩阵除法";
+        throw std::runtime_error("MathError: 暂不支持矩阵除法");
       }
       // 除法右边不支持矩阵
       if (!(l.isMatrix) && r.isMatrix)
       {
-        throw "MathError: 除法右边不支持矩阵";
+        throw std::runtime_error("MathError: 除法右边不支持矩阵");
       }
     }
 
@@ -105,7 +105,7 @@ Const process(std::stack<Const> &st, char op)
       }
       else
       {
-        throw "MathError: Matrix + Const";
+        throw std::runtime_error("MathError: Matrix + Const");
       }
     }
     else if (op == '-')
@@ -120,7 +120,7 @@ Const process(std::stack<Const> &st, char op)
       }
       else
       {
-        throw "MathError: Matrix - Const";
+        throw std::runtime_error("MathError: Matrix - Const");
       }
     }
     else if (op == '*')
@@ -159,7 +159,7 @@ Const process(std::stack<Const> &st, char op)
     }
     else
     {
-      throw "RuntimeError: Undefined behavior";
+      throw std::runtime_error("RuntimeError: Undefined behavior");
     }
   }
 };
@@ -249,7 +249,7 @@ Const calculate(std::string expr, MatrixList &ml)
 
       if (dots > 1)
       {
-        throw "MathError: 错误的小数点";
+        throw std::runtime_error("MathError: 错误的小数点");
       }
 
       auto r = std::stod(number);
@@ -272,17 +272,17 @@ Const calculate(std::string expr, MatrixList &ml)
         int idx = std::stoi(matrix_num) - 1;
         if (idx >= (ml).size())
         {
-          throw "ReferenceError: 不存在的矩阵";
+          throw std::runtime_error("ReferenceError: 不存在的矩阵");
         }
         exprs.push(Const{ (ml).get_mat(idx) });
         may_be_unary = false;
       }
       else {
-        throw "SyntaxError: 解析失败";
+        throw std::runtime_error("SyntaxError: 解析失败");
       }
     }
     else {
-      throw "SyntaxError: 解析失败";
+      throw std::runtime_error("SyntaxError: 解析失败");
     }
   }
 

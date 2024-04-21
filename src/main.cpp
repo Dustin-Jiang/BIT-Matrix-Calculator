@@ -16,7 +16,6 @@
 #include "model/Expression.hpp"
 #include "model/Matrix.hpp"
 #include "model/MatrixList.hpp"
-// #include "view/MatrixEditView.hpp"
 
 using namespace ftxui;
 
@@ -29,6 +28,7 @@ int main(int argc, const char *argv[]) {
   bool matrix_define_view_shown = false;
   bool matrix_edit_view_shown = false;
   std::vector<std::string> debug = {};
+  std::vector<std::string> warning = {};
 
   // MatrixDefineView
   int height = 0, width = 0;
@@ -234,6 +234,13 @@ int main(int argc, const char *argv[]) {
     height = std::stoi(height_v);
     width = std::stoi(width_v);
 
+    if (height == 0 || width == 0)
+    {
+      height_v = "";
+      width_v = "";
+      return ;
+    }
+
     auto matrix = std::vector<std::vector<double>> {};
     for (int i = 0; i < height; i++) {
       std::vector<std::shared_ptr<double>> row_p{};
@@ -253,19 +260,18 @@ int main(int argc, const char *argv[]) {
     show_matrix_edit_view();
   };
 
-  auto matrix_define_view_component = Container::Vertical({
-      Container::Vertical({
-          Text("定义矩阵尺寸"),
-          Container::Horizontal({
-              Input(&width_v, {.placeholder = "宽度", .multiline = false}) |
-                  underlined | flex | border,
-              Input(&height_v, {.placeholder = "高度", .multiline = false}) |
-                  underlined | flex | border,
-              Button("确定", set_size, button_style) | flex,
-          }),
-      }),
-      ButtonTiny("返回", hide_matrix_define_view),
-  });
+  auto matrix_define_view_component = Container::Vertical(
+      {Container::Vertical({
+           Text("定义矩阵尺寸"),
+           Container::Horizontal({
+               Input(&width_v, {.placeholder = "宽度", .multiline = false}) |
+                   underlined | flex | border,
+               Input(&height_v, {.placeholder = "高度", .multiline = false}) |
+                   underlined | flex | border,
+               Button("确定", set_size, button_style) | flex,
+           }),
+       }),
+       ButtonTiny("返回", hide_matrix_define_view)});
 
   auto matrix_define_view = ViewBase(matrix_define_view_component, "定义矩阵");
 
@@ -275,30 +281,37 @@ int main(int argc, const char *argv[]) {
   auto tab_matrix_calc_v = std::string{""};
   auto tab_matrix_calc_r = Text("");
   auto matrix_calc = [&] { 
-    auto result_c = Expr::calculate(tab_matrix_calc_v, matrix_list);
-    if (result_c.isMatrix)
-    {
-      auto result = std::get<Matrix>(result_c.evaluate());
-      debug.push_back(result.to_string());
-      tab_matrix_calc_r = [&]
+    try {
+      auto result_c = Expr::calculate(tab_matrix_calc_v, matrix_list);
+      warning.clear();
+      if (result_c.isMatrix)
       {
-        std::vector<Components> matrix_calc_result_components{};
-        for (int i = 0; i < result.height; i++) {
-          Components row;
-          for (auto j = result.line_begin(i); j != result.line_end(); ++j) {
-            row.push_back(Text(std::to_string(*j)) | flex | border);
+        auto result = std::get<Matrix>(result_c.evaluate());
+        debug.push_back(result.to_string());
+        tab_matrix_calc_r = [&]
+        {
+          std::vector<Components> matrix_calc_result_components{};
+          for (int i = 0; i < result.height; i++) {
+            Components row;
+            for (auto j = result.line_begin(i); j != result.line_end(); ++j) {
+              row.push_back(Text(std::to_string(*j)) | flex | border);
+            }
+            matrix_calc_result_components.push_back(row);
           }
-          matrix_calc_result_components.push_back(row);
-        }
-        auto matrix_edit_view_component = GridContainer(matrix_calc_result_components);
-        return matrix_edit_view_component;
-      }();
+          auto matrix_edit_view_component = GridContainer(matrix_calc_result_components);
+          return matrix_edit_view_component;
+        }();
+      }
+      else
+      {
+        auto result = std::get<double>(result_c.evaluate());
+        debug.push_back(std::to_string(result));
+        tab_matrix_calc_r = Text(std::to_string(result));
+      }
     }
-    else
+    catch(const std::exception & ex)
     {
-      auto result = std::get<double>(result_c.evaluate());
-      debug.push_back(std::to_string(result));
-      tab_matrix_calc_r = Text(std::to_string(result));
+      warning.push_back(ex.what());
     }
   };
   auto tab_matrix_calc_comfirm = Button("计算", matrix_calc, button_style);
@@ -345,7 +358,8 @@ int main(int argc, const char *argv[]) {
         separator(),
         tab_container->Render(),
         separator(),
-        List(debug)->Render() | size(HEIGHT, LESS_THAN, 20)
+        filler(),
+        List(warning)->Render() | size(HEIGHT, LESS_THAN, 5) | color(Color::Red)
     });
   });
   main_component = ViewBase(main_component, "矩阵计算器");
