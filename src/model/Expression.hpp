@@ -65,7 +65,7 @@ Const process(std::stack<Const> &st, char op)
     {
       if (op == '*')
       {
-        if (l.height != r.width)
+        if (l.width != r.height)
         {
           throw std::runtime_error("MathError: 矩阵尺寸不匹配");
         }

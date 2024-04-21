@@ -123,6 +123,8 @@ int main(int argc, const char *argv[]) {
   auto tab_matrix_define_entries = matrix_list.entries();
 
   std::vector<std::string> tab_about_entries{
+      "我相信大家都知道, 但是如果你不会退出的话, 为什么不试试 Ctrl+C 打断呢",
+      "",
       "作者     | Dustin Jiang",
       "Repo     | https://github.com/Dustin-Jiang/BIT-Matrix-Calculator",
       "",
@@ -318,6 +320,7 @@ int main(int argc, const char *argv[]) {
     catch(const std::exception & ex)
     {
       warning.push_back(ex.what());
+      tab_matrix_calc_r = Text("");
     }
   };
   auto tab_matrix_calc_comfirm = Button("计算", matrix_calc, button_style);
