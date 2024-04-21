@@ -122,14 +122,20 @@ int main(int argc, const char *argv[]) {
   });
   auto tab_matrix_define_entries = matrix_list.entries();
 
-  std::vector<std::string> tab_3_entries{
-      "Table",
-      "Nothing",
-      "Is",
-      "Empty",
-  };
-  int tab_3_selected = 0;
+  std::vector<std::string> tab_about_entries{
+      "作者     | Dustin Jiang",
+      "Repo     | https://github.com/Dustin-Jiang/BIT-Matrix-Calculator",
+      "",
+      "制作协力 | 東雲研究所"
+      "",
+      "致谢     | 世界上最好的宁宁",
+      "           https://github.com/Re-Nai",
+      "",
+      "\"日々私たちが过ごしている日常は、実は、奇迹の连続なのかもしれない。\"",
+      "\"我们所经历的每个平凡的日常，也许就是连续发生的奇迹。\""};
+  int tab_about_selected = 0;
 
+  auto tab_about_panel = Menu(&tab_about_entries, &tab_about_selected);
 
 
   // MatrixEditView
@@ -333,7 +339,7 @@ int main(int argc, const char *argv[]) {
         tab_matrix_calc_comfirm->Render() | size(WIDTH, GREATER_THAN, 8) | size(HEIGHT, GREATER_THAN, 5) | yflex | center
       ),
       separator(),
-      text("计算结果") | bold,
+      text("计算结果") | bold | yflex,
       tab_matrix_calc_r->Render()
     });
   });
@@ -344,7 +350,7 @@ int main(int argc, const char *argv[]) {
       {
           Menu(&tab_matrix_define_entries, &tab_matrix_define_selected) | CatchEvent(tab_matrix_define_action),
           tab_matrix_calc_panel,
-          Radiobox(&tab_3_entries, &tab_3_selected),
+          tab_about_panel,
       },
       &tab_selected);
 
