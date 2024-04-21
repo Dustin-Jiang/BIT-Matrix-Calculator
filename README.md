@@ -31,7 +31,7 @@
 
 ## Windows MSYS2 / MinGW
 
-在项目根目录下运行 `./scripts/build-target.ps1` 即可, 编译得到的二进制执行文件在 `/build` 文件夹下. 
+在项目根目录下运行 `./scripts/build-target.ps1` 即可, 编译得到的二进制执行文件 `matrix-calc.exe` 在 `/build` 文件夹下. 
 
 ## Windows MSVC
 

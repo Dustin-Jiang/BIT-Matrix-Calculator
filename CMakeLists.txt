@@ -17,8 +17,8 @@ project(ftxui-starter LANGUAGES CXX VERSION 1.0.0)
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "-static")
-add_executable(ftxui-starter src/main.cpp)
-target_link_libraries(ftxui-starter
+add_executable(matrix-calc src/main.cpp)
+target_link_libraries(matrix-calc
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
