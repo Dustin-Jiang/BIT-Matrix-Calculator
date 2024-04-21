@@ -48,6 +48,18 @@ Const process(std::stack<Const> &st, char op)
         return Const { -l_v };
       }
     }
+    else if (-op == '|')
+    {
+      if (!l.isMatrix)
+      {
+        throw std::runtime_error("MathError: 非矩阵无行列式");
+      }
+      else
+      {
+        auto l_v = get<Matrix>(l.evaluate());
+        return Const { l_v.determinant() };
+      }
+    }
     else
     {
       throw std::runtime_error("RuntimeError: Undefined behavior");
@@ -188,6 +200,7 @@ Const calculate(std::string expr, MatrixList &ml)
   std::stack<char> ops;
   // 初始时可能为单元运算
   bool may_be_unary = true;
+  bool has_slash = false;
 
   for (int i = 0; i < expr.size(); i++)
   {
@@ -212,6 +225,25 @@ Const calculate(std::string expr, MatrixList &ml)
       ops.pop();
       // 不会为单元运算
       may_be_unary = false;
+    }
+    else if (expr[i] == '|')
+    {
+      if (has_slash)
+      {
+        while (ops.top() != '|') {
+          exprs.push(process(exprs, ops.top()));
+          ops.pop();
+        }
+        // 左绝对值出栈
+        ops.pop();
+        exprs.push(process(exprs, -'|'));
+        has_slash = false;
+      }
+      else
+      {
+        ops.push('|');
+        has_slash = true;
+      }
     }
     else if (is_op(expr[i]))
     {
